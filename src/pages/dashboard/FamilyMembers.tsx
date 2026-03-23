@@ -16,17 +16,17 @@ interface FamilyMember {
   age: string;
   gender: string;
   phone_number: string;
-  abha_id: string;
   doctor_view_token: string;
 }
 
 export default function FamilyMembers() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [showQr, setShowQr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", age: "", gender: "", phone_number: "", abha_id: "" });
+  const [form, setForm] = useState({ name: "", age: "", gender: "", phone_number: "" });
 
   useEffect(() => {
     fetchMembers();
@@ -36,6 +36,7 @@ export default function FamilyMembers() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
       const { data, error } = await supabase
         .from("family_members")
         .select("*")
@@ -68,12 +69,11 @@ export default function FamilyMembers() {
           age: form.age,
           gender: form.gender,
           phone_number: form.phone_number,
-          abha_id: form.abha_id,
           doctor_view_token: token
         });
       if (error) throw error;
       toast.success("Family member added!");
-      setForm({ name: "", age: "", gender: "", phone_number: "", abha_id: "" });
+      setForm({ name: "", age: "", gender: "", phone_number: "" });
       setOpen(false);
       fetchMembers();
     } catch (error) {
@@ -125,10 +125,6 @@ export default function FamilyMembers() {
                 <Label>Phone Number</Label>
                 <Input placeholder="+91 98765 43210" value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} />
               </div>
-              <div className="space-y-2">
-                <Label>ABHA ID</Label>
-                <Input placeholder="91-XXXX-XXXX-XXXX" value={form.abha_id} onChange={(e) => setForm({ ...form, abha_id: e.target.value })} />
-              </div>
               <Button className="w-full" onClick={handleAdd} disabled={saving}>
                 {saving ? "Adding..." : "Add Member"}
               </Button>
@@ -143,6 +139,39 @@ export default function FamilyMembers() {
         <p className="text-muted-foreground text-sm">No family members yet. Add your first member.</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
+          {userId && (
+            <Card key="self" className="card-elevated border-border">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-foreground">Self</p>
+                        <span className="text-[10px] uppercase tracking-wider text-primary bg-primary/10 rounded px-1.5 py-0.5">Profile</span>
+                        <Button variant="ghost" size="icon" className="p-0" onClick={() => setShowQr(showQr === "self" ? null : "self") }>
+                          <QrCode className="h-4 w-4 text-primary" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">My profile QR code</p>
+                    </div>
+                  </div>
+                </div>
+                {showQr === "self" && (
+                  <div className="mt-4 flex justify-center p-4 bg-card rounded-lg border border-border">
+                    <QRCodeSVG
+                      value={`${window.location.origin}/doctor/self-${userId}`}
+                      size={140}
+                      level="M"
+                      fgColor="hsl(152, 55%, 33%)"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
           {members.map((member, i) => (
             <Card key={member.id} className="card-elevated border-border">
               <CardContent className="p-4">
@@ -152,22 +181,22 @@ export default function FamilyMembers() {
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{member.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-foreground">{member.name}</p>
+                        <span className="text-[10px] uppercase tracking-wider text-primary bg-primary/10 rounded px-1.5 py-0.5">Self</span>
+                        <Button variant="ghost" size="icon" className="p-0" onClick={() => setShowQr(showQr === member.id ? null : member.id)}>
+                          <QrCode className="h-4 w-4 text-primary" />
+                        </Button>
+                      </div>
                       <p className="text-xs text-muted-foreground">{member.age} yrs • {member.gender}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setShowQr(showQr === member.id ? null : member.id)}>
-                    <QrCode className="h-4 w-4" />
-                  </Button>
                 </div>
                 <div className="mt-3 space-y-1.5 text-sm">
                   {member.phone_number && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Phone className="h-3.5 w-3.5" /> {member.phone_number}
                     </div>
-                  )}
-                  {member.abha_id && (
-                    <p className="text-xs text-muted-foreground">ABHA: {member.abha_id}</p>
                   )}
                 </div>
                 {showQr === member.id && (

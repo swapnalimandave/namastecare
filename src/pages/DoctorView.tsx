@@ -24,6 +24,21 @@ export default function DoctorView() {
 
   const fetchData = async (token: string) => {
     try {
+      if (token.startsWith("self-")) {
+        const selfUserId = token.replace("self-", "");
+        setMember({ name: "Self", age: "", gender: "", phone_number: "", doctor_view_token: token } as any);
+
+        const { data: recordsData } = await supabase
+          .from("health_records")
+          .select("*")
+          .eq("user_id", selfUserId)
+          .order("created_at", { ascending: false });
+
+        setRecords(recordsData || []);
+        setMedicines([]);
+        return;
+      }
+
       const { data: memberData, error } = await supabase
         .from("family_members")
         .select("*")
@@ -42,8 +57,7 @@ export default function DoctorView() {
         .from("clinical_summaries")
         .select("*")
         .eq("family_member_id", memberData.id)
-        .order("created_at", { ascending: false })
-        .limit(3);
+        .order("created_at", { ascending: false });
 
       setRecords(recordsData || []);
 
@@ -101,9 +115,6 @@ export default function DoctorView() {
               <div>
                 <h2 className="font-bold text-foreground text-lg">{member?.name}</h2>
                 <p className="text-sm text-muted-foreground">{member?.age} yrs • {member?.gender}</p>
-                {member?.abha_id && (
-                  <p className="text-xs text-muted-foreground mt-0.5">ABHA: {member.abha_id}</p>
-                )}
               </div>
             </div>
           </CardContent>

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function HomePage() {
   const [userName, setUserName] = useState("there");
   const [recordsCount, setRecordsCount] = useState(0);
+  const [familyCount, setFamilyCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,10 +20,12 @@ export default function HomePage() {
       if (user) {
         setUserName(user.user_metadata?.name || user.email?.split("@")[0] || "there");
       }
-      const { count } = await supabase
-        .from("health_records")
-        .select("*", { count: "exact", head: true });
-      setRecordsCount(count || 0);
+      const [{ count: healthCount }, { count: familyCount }] = await Promise.all([
+        supabase.from("health_records").select("*", { count: "exact", head: true }),
+        supabase.from("family_members").select("*", { count: "exact", head: true }),
+      ]);
+      setRecordsCount(healthCount || 0);
+      setFamilyCount(familyCount || 0);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -44,7 +47,9 @@ export default function HomePage() {
           <Card className="card-elevated border-border hover:border-primary/30 transition-all cursor-pointer">
             <CardContent className="p-4">
               <Users className="h-5 w-5 text-primary mb-2" />
-              <p className="text-2xl font-bold text-foreground">—</p>
+              <p className="text-2xl font-bold text-foreground">
+                {loading ? "..." : familyCount}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">Family Members</p>
             </CardContent>
           </Card>

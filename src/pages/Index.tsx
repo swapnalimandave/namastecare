@@ -6,8 +6,8 @@ const features = [
   {
     icon: Users,
     title: "Family Profiles",
-    desc: "Add all family members with ABHA ID and QR codes for easy sharing",
-    bullets: ["ABHA integration", "QR code sharing", "Multi-member support"]
+    desc: "Add all family members with QR codes for easy sharing",
+    bullets: ["Secure profile linking", "QR code sharing", "Multi-member support"]
   },
   {
     icon: FileText,
@@ -45,7 +45,7 @@ const testimonials = [
   {
     name: "Amit Patel",
     role: "Tech Professional",
-    content: "Secure, user-friendly, and ABHA compliant. Exactly what Indian families need for healthcare management.",
+    content: "Secure, user-friendly, and fully compliant with national standards. Exactly what Indian families need for healthcare management.",
     rating: 5
   }
 ];
@@ -54,7 +54,7 @@ const howItWorks = [
   {
     step: 1,
     title: "Create Your Profile",
-    desc: "Sign up and add your family members with ABHA IDs",
+    desc: "Sign up and add your family members to your care group",
     icon: Users
   },
   {
@@ -119,11 +119,11 @@ export default function Index() {
                 <Shield className="h-3.5 w-3.5" /> Secure & Private
               </div>
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full hover:bg-primary/20 hover:scale-105 hover:pulse transition-all duration-200 cursor-pointer">
-                <CheckCircle className="h-3.5 w-3.5" /> ABHA Compliant
+                <CheckCircle className="h-3.5 w-3.5" /> Secure and compliant
               </div>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-foreground max-w-2xl mx-auto lg:mx-0 leading-[1.1] mb-6">
-              Your family's health, <span className="text-primary">organized</span> and accessible
+              You and Your family's health, <span className="text-primary">organized</span> and accessible
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl max-w-lg mx-auto lg:mx-0 leading-relaxed mb-8">
               Store health records, track medicines, and share patient summaries with doctors — all in one place.
@@ -241,7 +241,7 @@ export default function Index() {
                 <span className="font-bold text-lg text-foreground">NamasteCare</span>
               </div>
               <p className="text-muted-foreground mb-4 max-w-md">
-                Your family's health, organized and accessible. Secure, ABHA-compliant healthcare management for Indian families.
+                you and your's family's health, organized. Secure, compliant healthcare management for Indian families.
               </p>
               <div className="flex gap-4">
                 <a href="#" className="text-muted-foreground hover:text-primary hover:scale-110 transition-all duration-200 p-2 rounded-full hover:bg-primary/10" aria-label="Facebook">

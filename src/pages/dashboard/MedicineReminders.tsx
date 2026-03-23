@@ -25,6 +25,7 @@ export default function MedicineReminders() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
+  const [user, setUser] = useState<{ id: string; name: string | null; phone?: string | null } | null>(null);
   const [form, setForm] = useState({
     medicine_name: "",
     dosage: "",
@@ -40,6 +41,7 @@ export default function MedicineReminders() {
   const fetchMembers = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    setUser({ id: user.id, name: user.user_metadata?.name || user.email?.split("@")[0] || "Self", phone: user.user_metadata?.phone });
     const { data } = await supabase
       .from("family_members")
       .select("*")
@@ -57,12 +59,11 @@ export default function MedicineReminders() {
         .select("id, name, phone_number")
         .eq("user_id", user.id);
 
-      if (!memberData || memberData.length === 0) {
-        setLoading(false);
-        return;
+      const memberIds = (memberData || []).map(m => m.id);
+      if (user.id && !memberIds.includes(user.id)) {
+        memberIds.push(user.id);
       }
 
-      const memberIds = memberData.map(m => m.id);
       const { data: reminders } = await supabase
         .from("medicine_reminders")
         .select("*")
@@ -71,10 +72,12 @@ export default function MedicineReminders() {
 
       const enriched = (reminders || []).map(r => {
         const member = memberData.find(m => m.id === r.family_member_id);
+        const isSelf = user?.id && r.family_member_id === user.id;
+
         return {
           ...r,
-          member_name: member?.name || "Unknown",
-          phone_number: member?.phone_number || ""
+          member_name: isSelf ? (user?.name || "Self") : (member?.name || "Unknown"),
+          phone_number: isSelf ? (user?.phone || member?.phone_number || "") : (member?.phone_number || "")
         };
       });
 
@@ -93,6 +96,13 @@ export default function MedicineReminders() {
     }
     setSaving(true);
     try {
+      const memberId = form.family_member_id === "self" ? user?.id : form.family_member_id;
+      if (!memberId) {
+        toast.error("Please select a valid member");
+        setSaving(false);
+        return;
+      }
+
       const timesArray = form.times.split(",").map(t => t.trim()).filter(Boolean);
       const { error } = await supabase
         .from("medicine_reminders")
@@ -100,7 +110,7 @@ export default function MedicineReminders() {
           medicine_name: form.medicine_name,
           dosage: form.dosage,
           times: timesArray,
-          family_member_id: form.family_member_id,
+          family_member_id: memberId,
           active: true
         });
       if (error) throw error;
@@ -147,8 +157,8 @@ export default function MedicineReminders() {
                   className="w-full border border-input rounded-md px-3 py-2 text-sm"
                   value={form.family_member_id}
                   onChange={(e) => setForm({ ...form, family_member_id: e.target.value })}
-                >
-                  <option value="">Select member</option>
+                >                  <option value="">Select member</option>
+                  <option value="self">Self</option>                  <option value="">Select member</option>
                   {members.map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}

@@ -97,7 +97,11 @@ export default function HealthRecords() {
       }
 
       toast({ title: "Report analyzed!", description: `${result.record.report_name} added to your records.` });
-      await fetchRecords();
+      if (result.record) {
+        setRecords((prev) => [result.record, ...prev]);
+      } else {
+        await fetchRecords();
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast({
